@@ -23,27 +23,53 @@
 
 ```
 kahoot-leaderboard/
-├── client/
-│   ├── public/
-│   │   └── data/              # CSV 資料檔案
-│   │       ├── Kahoot_scores.csv
-│   │       └── students.csv
-│   ├── src/
-│   │   ├── components/        # UI 元件
-│   │   │   ├── LeaderboardTable.tsx
-│   │   │   ├── SeasonTable.tsx
-│   │   │   ├── ViewToggle.tsx
-│   │   │   └── WeekPicker.tsx
-│   │   ├── lib/               # 工具函式
-│   │   │   ├── types.ts       # TypeScript 型別定義
-│   │   │   ├── csv.ts         # CSV 解析工具
-│   │   │   └── compute.ts     # 成績計算邏輯
-│   │   ├── pages/             # 頁面元件
-│   │   │   ├── Home.tsx       # 首頁（排行榜）
-│   │   │   └── About.tsx      # 規則說明頁
-│   │   └── App.tsx            # 應用程式入口
-│   └── package.json
-└── README.md
+├── client/                          # 前端應用程式
+│   ├── public/                      # 靜態資源目錄
+│   │   └── data/                    # CSV 資料檔案
+│   │       ├── Kahoot_scores.csv              # 當前使用的成績資料（12 週模擬測試資料）
+│   │       └── students.csv                   # 學生名冊（模擬測試資料）
+│   ├── src/                         # 原始碼目錄
+│   │   ├── components/              # React 元件
+│   │   │   ├── ui/                  # shadcn/ui 基礎元件庫
+│   │   │   ├── ErrorBoundary.tsx    # 錯誤邊界元件
+│   │   │   ├── LeaderboardTable.tsx # 週排行榜表格元件
+│   │   │   ├── ManusDialog.tsx      # 對話框元件
+│   │   │   ├── SeasonTable.tsx      # 學期總排行榜表格元件
+│   │   │   ├── ViewToggle.tsx       # 視圖切換按鈕（原始/換算）
+│   │   │   └── WeekPicker.tsx       # 週次選擇器
+│   │   ├── contexts/                # React Context
+│   │   │   └── ThemeContext.tsx     # 主題管理 Context
+│   │   ├── hooks/                   # 自訂 React Hooks
+│   │   │   ├── useComposition.ts    # 輸入法組合事件處理
+│   │   │   ├── useMobile.tsx        # 行動裝置偵測
+│   │   │   └── usePersistFn.ts      # 函式持久化
+│   │   ├── lib/                     # 工具函式庫
+│   │   │   ├── blob.ts              # Vercel Blob 讀取工具
+│   │   │   ├── compute.ts           # 成績計算邏輯（核心）
+│   │   │   ├── csv.ts               # CSV 解析工具
+│   │   │   ├── types.ts             # TypeScript 型別定義
+│   │   │   └── utils.ts             # 通用工具函式
+│   │   ├── pages/                   # 頁面元件
+│   │   │   ├── About.tsx            # 規則說明頁
+│   │   │   ├── Home.tsx             # 首頁（排行榜）
+│   │   │   └── NotFound.tsx         # 404 頁面
+│   │   ├── App.tsx                  # 應用程式入口與路由
+│   │   ├── const.ts                 # 常數定義
+│   │   ├── index.css                # 全域樣式（Tailwind CSS）
+│   │   └── main.tsx                 # React 進入點
+│   └── index.html                   # HTML 模板
+├── DEPLOYMENT.md                    # 部署教學
+├── ENV_SETUP.md                     # 環境變數設定說明
+├── QUICK_START.md                   # Vercel Blob 快速開始指南（推薦閱讀）
+├── README.md                        # 專案說明文件
+├── VERCEL_BLOB_GUIDE.md             # Vercel Blob 完整指南（含方案比較）
+├── VERCEL_BLOB_SETUP.md             # Vercel Blob 詳細設定步驟
+├── components.json                  # shadcn/ui 設定檔
+├── package.json                     # 專案依賴與腳本
+├── pnpm-lock.yaml                   # pnpm 鎖定檔
+├── tsconfig.json                    # TypeScript 設定
+├── tsconfig.node.json               # Node.js TypeScript 設定
+└── vite.config.ts                   # Vite 建置工具設定
 ```
 
 ## 計分規則
@@ -68,15 +94,11 @@ kahoot-leaderboard/
    - 公式：百分制 = 60 + (學期總分 - 全班最低分) / (全班最高分 - 全班最低分) × 40
    - **保底機制**：最高分 100 分，最低分 60 分
 
-### 同分處理
-
-當多位學生分數相同時，依照學號字典序（由小到大）決定名次順序。
-
 ## 本地開發
 
 ### 環境需求
 
-- Node.js 18+ 
+- Node.js 18+
 - pnpm 8+
 
 ### 安裝與執行
@@ -133,6 +155,7 @@ Kahoot 原始成績檔案，格式如下：
 詳細步驟請參考 **`QUICK_START.md`** 文件，約 15-20 分鐘即可完成設定。
 
 **簡要流程：**
+
 1. 在 Vercel Dashboard 建立 Blob Store
 2. 使用 Vercel CLI 上傳 CSV 檔案
 3. 設定環境變數（`VITE_KAHOOT_SCORES_BLOB_URL` 和 `VITE_STUDENTS_BLOB_URL`）
@@ -143,6 +166,7 @@ Kahoot 原始成績檔案，格式如下：
 **這是最安全且最方便的方式**，適合保護學生隱私資料，且更新成績無需重新部署。
 
 **優點：**
+
 - ✅ CSV 資料不會出現在 GitHub 或公開網址
 - ✅ 無檔案大小限制
 - ✅ 更新成績無需重新部署（上傳新 CSV 即可）
@@ -151,6 +175,7 @@ Kahoot 原始成績檔案，格式如下：
 **設定步驟：**
 
 請參考以下文件：
+
 - **快速開始**：`QUICK_START.md`（推薦，15-20 分鐘完成）
 - **完整教學**：`VERCEL_BLOB_SETUP.md`（含截圖與詳細說明）
 - **環境變數說明**：`ENV_SETUP.md`
@@ -163,6 +188,7 @@ Kahoot 原始成績檔案，格式如下：
 **限制**：環境變數有大小限制（約 4KB），不適合大型 CSV 檔案。
 
 **步驟**：
+
 1. 將 CSV 內容複製為純文字
 2. 在 Vercel 設定環境變數：`VITE_KAHOOT_SCORES_CSV` 和 `VITE_STUDENTS_CSV`
 3. 修改 `csv.ts` 優先從環境變數讀取
@@ -203,10 +229,6 @@ A: 在 `client/src/pages/Home.tsx` 中，找到 `computeSeason(allWeeksFlat, 10)
 
 A: 只需在 `Kahoot_scores.csv` 中新增對應的欄位（例如 `ch13`），系統會自動偵測並顯示。
 
-### Q: 同分時如何決定名次？
-
-A: 系統會依照學號字典序（由小到大）排序，學號較小者排名較前。
-
 ### Q: 週成績有保底機制嗎？
 
 A: **沒有**。週成績計算不設保底，標準化分數可低於 60 分。保底機制僅適用於學期總分的百分制換算。
@@ -219,15 +241,14 @@ A: 學期總分使用 MIN-MAX 標準化，將全班的學期總分映射到 60-1
 
 A: 修改 `client/src/index.css` 中的 CSS 變數，或直接編輯各元件的 Tailwind 類別。
 
-## 測試資料
+## 模擬測試資料
 
-專案包含 12 週的模擬測試資料（`Kahoot_scores_12weeks.csv`），包含 73 位學生，出席率約 86.5%。您可以使用此資料測試系統功能。
+專案包含 12 週的模擬測試資料，包含 73 位學生，出席率約 86.5%。您可以使用此資料測試系統功能。
 
 ## 授權
 
 MIT License
 
-## 作者
+## 專案開發AI協作
 
-本專案由 AI Agent (Manus) 協助開發。
-
+本專案之初期規劃與專案開發規格書，由ChatGPT 5對話生成。後續程式碼撰寫、修訂與說明文件撰寫，由 AI Agent ([Manus](https://manus.im/app)) 協助製作。
