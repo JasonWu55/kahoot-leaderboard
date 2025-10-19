@@ -70,6 +70,7 @@ vercel link
 ```
 
 按照提示選擇：
+
 - Scope：您的 Vercel 帳號
 - Link to existing project：Yes
 - Project name：kahoot-leaderboard
@@ -77,6 +78,7 @@ vercel link
 ### 2.4 取得 Blob Token
 
 前往 Vercel Dashboard：
+
 1. 進入您的專案
 2. 點擊 **「Storage」** → **「kahoot-data」**
 3. 點擊 **「Settings」** 標籤
@@ -89,12 +91,12 @@ vercel link
 
 ```bash
 # 上傳 Kahoot 成績檔案
-vercel blob upload client/public/data/Kahoot_scores.csv \
-  --token YOUR_BLOB_READ_WRITE_TOKEN
+vercel blob put client/public/data/Kahoot_scores.csv \
+  --rw-token YOUR_BLOB_READ_WRITE_TOKEN
 
 # 上傳學生名冊檔案
-vercel blob upload client/public/data/students.csv \
-  --token YOUR_BLOB_READ_WRITE_TOKEN
+vercel blob put client/public/data/students.csv \
+  --rw-token YOUR_BLOB_READ_WRITE_TOKEN
 ```
 
 **注意**：將 `YOUR_BLOB_READ_WRITE_TOKEN` 替換為您剛才複製的 Token。
@@ -229,6 +231,7 @@ vercel blob upload path/to/new/Kahoot_scores.csv \
 **原因**：Token 錯誤或過期
 
 **解決方法**：
+
 1. 前往 Vercel Dashboard → Storage → kahoot-data → Settings
 2. 重新複製 Read-Write Token
 3. 使用新的 Token 重新上傳
@@ -236,11 +239,13 @@ vercel blob upload path/to/new/Kahoot_scores.csv \
 ### Q2: 網站顯示「尚無成績資料」
 
 **可能原因**：
+
 - 環境變數未正確設定
 - Blob URL 錯誤
 - CSV 檔案格式錯誤
 
 **排查步驟**：
+
 1. 檢查 Vercel Dashboard 的環境變數是否正確
 2. 開啟瀏覽器 Console，查看錯誤訊息
 3. 確認 Blob URL 可以直接在瀏覽器中開啟（會下載 CSV 檔案）
@@ -251,6 +256,7 @@ vercel blob upload path/to/new/Kahoot_scores.csv \
 **原因**：本地環境未設定 `.env.local`
 
 **解決方法**：
+
 - 方法 1：建立 `.env.local` 並填入 Blob URLs
 - 方法 2：不設定環境變數，讓系統自動降級使用 `public/data/` 目錄
 
@@ -259,6 +265,7 @@ vercel blob upload path/to/new/Kahoot_scores.csv \
 **原因**：瀏覽器快取
 
 **解決方法**：
+
 1. 強制重新整理（Ctrl + Shift + R）
 2. 清除瀏覽器快取
 3. 使用無痕模式測試
@@ -266,6 +273,7 @@ vercel blob upload path/to/new/Kahoot_scores.csv \
 ### Q5: Blob URL 洩漏怎麼辦？
 
 **解決方法**：
+
 1. 在 Vercel Dashboard → Storage → kahoot-data 中刪除舊檔案
 2. 重新上傳 CSV 檔案（會得到新的 URL）
 3. 更新 Vercel 環境變數
@@ -295,4 +303,3 @@ vercel blob upload path/to/new/Kahoot_scores.csv \
 ✅ 享受全球 CDN 加速的快速存取
 
 如有任何問題，請參考 [Vercel Blob 官方文件](https://vercel.com/docs/storage/vercel-blob)。
-

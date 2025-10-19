@@ -6,11 +6,11 @@
 
 ### 方案比較
 
-| 方案 | 優點 | 缺點 | 適用情境 |
-|------|------|------|----------|
-| **Public 目錄** | 簡單直接，無需額外設定 | CSV 檔案會公開，任何人都能下載 | 僅適合測試環境 |
-| **環境變數** | 資料不公開，適合小檔案 | 有大小限制（約 4KB），不適合大型 CSV | 小型資料集（< 100 學生） |
-| **Vercel Blob** | 安全、無大小限制、易於更新 | 需要額外設定，有免費額度限制 | **推薦用於正式環境** |
+| 方案            | 優點                       | 缺點                                 | 適用情境                 |
+| --------------- | -------------------------- | ------------------------------------ | ------------------------ |
+| **Public 目錄** | 簡單直接，無需額外設定     | CSV 檔案會公開，任何人都能下載       | 僅適合測試環境           |
+| **環境變數**    | 資料不公開，適合小檔案     | 有大小限制（約 4KB），不適合大型 CSV | 小型資料集（< 100 學生） |
+| **Vercel Blob** | 安全、無大小限制、易於更新 | 需要額外設定，有免費額度限制         | **推薦用於正式環境**     |
 
 ### Vercel Blob 的優勢
 
@@ -60,13 +60,14 @@ cd /home/ubuntu/kahoot-leaderboard
 vercel link
 
 # 上傳 CSV 檔案
-vercel blob upload client/public/data/Kahoot_scores.csv --token YOUR_BLOB_READ_WRITE_TOKEN
-vercel blob upload client/public/data/students.csv --token YOUR_BLOB_READ_WRITE_TOKEN
+vercel blob put client/public/data/Kahoot_scores.csv --rw-token YOUR_BLOB_READ_WRITE_TOKEN
+vercel blob put client/public/data/students.csv --rw-token YOUR_BLOB_READ_WRITE_TOKEN
 ```
 
 **注意**：`YOUR_BLOB_READ_WRITE_TOKEN` 可以在 Vercel Dashboard → Storage → kahoot-data → Settings 中找到。
 
 上傳後，您會得到兩個 Blob URL，例如：
+
 - `https://abc123.public.blob.vercel-storage.com/Kahoot_scores.csv`
 - `https://abc123.public.blob.vercel-storage.com/students.csv`
 
@@ -88,7 +89,7 @@ export async function fetchFromBlob(blobUrl: string): Promise<string> {
     }
     return await response.text();
   } catch (error) {
-    console.error('Error fetching from Vercel Blob:', error);
+    console.error("Error fetching from Vercel Blob:", error);
     throw error;
   }
 }
@@ -99,8 +100,8 @@ export async function fetchFromBlob(blobUrl: string): Promise<string> {
 修改 `client/src/lib/csv.ts`：
 
 ```typescript
-import Papa from 'papaparse';
-import { fetchFromBlob } from './blob';
+import Papa from "papaparse";
+import { fetchFromBlob } from "./blob";
 
 // Vercel Blob URLs（從環境變數讀取）
 const KAHOOT_SCORES_BLOB_URL = import.meta.env.VITE_KAHOOT_SCORES_BLOB_URL;
@@ -109,17 +110,23 @@ const STUDENTS_BLOB_URL = import.meta.env.VITE_STUDENTS_BLOB_URL;
 /**
  * 讀取 CSV 檔案（優先從 Vercel Blob，否則從 public 目錄）
  */
-async function fetchCSVContent(blobUrl: string | undefined, publicPath: string): Promise<string> {
+async function fetchCSVContent(
+  blobUrl: string | undefined,
+  publicPath: string
+): Promise<string> {
   // 優先從 Vercel Blob 讀取
   if (blobUrl) {
     try {
       console.log(`Fetching from Vercel Blob: ${blobUrl}`);
       return await fetchFromBlob(blobUrl);
     } catch (error) {
-      console.warn('Failed to fetch from Blob, falling back to public path', error);
+      console.warn(
+        "Failed to fetch from Blob, falling back to public path",
+        error
+      );
     }
   }
-  
+
   // 降級方案：從 public 目錄讀取（開發環境）
   console.log(`Fetching from public path: ${publicPath}`);
   const response = await fetch(publicPath);
@@ -137,16 +144,16 @@ export async function loadKahootScores(): Promise<{
     // 從 Blob 或 public 目錄讀取
     const csvContent = await fetchCSVContent(
       KAHOOT_SCORES_BLOB_URL,
-      '/data/Kahoot_scores.csv'
+      "/data/Kahoot_scores.csv"
     );
-    
+
     return new Promise((resolve, reject) => {
       Papa.parse<Record<string, string | number>>(csvContent, {
         header: true,
         skipEmptyLines: true,
         dynamicTyping: true,
-        transformHeader: (header) => header.trim().toLowerCase(),
-        complete: (results) => {
+        transformHeader: header => header.trim().toLowerCase(),
+        complete: results => {
           // ... 原本的解析邏輯
         },
         error: (error: Error) => {
@@ -155,7 +162,7 @@ export async function loadKahootScores(): Promise<{
       });
     });
   } catch (error) {
-    console.error('讀取 Kahoot 成績失敗:', error);
+    console.error("讀取 Kahoot 成績失敗:", error);
     throw error;
   }
 }
@@ -165,15 +172,15 @@ export async function loadStudents(): Promise<Student[]> {
     // 從 Blob 或 public 目錄讀取
     const csvContent = await fetchCSVContent(
       STUDENTS_BLOB_URL,
-      '/data/students.csv'
+      "/data/students.csv"
     );
-    
+
     return new Promise((resolve, reject) => {
       Papa.parse<Student>(csvContent, {
         header: true,
         skipEmptyLines: true,
-        transformHeader: (header) => header.trim().toLowerCase(),
-        complete: (results) => {
+        transformHeader: header => header.trim().toLowerCase(),
+        complete: results => {
           // ... 原本的解析邏輯
         },
         error: (error: Error) => {
@@ -182,7 +189,7 @@ export async function loadStudents(): Promise<Student[]> {
       });
     });
   } catch (error) {
-    console.error('讀取學生資料失敗:', error);
+    console.error("讀取學生資料失敗:", error);
     throw error;
   }
 }
@@ -192,10 +199,10 @@ export async function loadStudents(): Promise<Student[]> {
 
 在 Vercel 專案設定中，新增以下環境變數：
 
-| 變數名稱 | 值 | 說明 |
-|---------|-----|------|
+| 變數名稱                      | 值                                                                | 說明                 |
+| ----------------------------- | ----------------------------------------------------------------- | -------------------- |
 | `VITE_KAHOOT_SCORES_BLOB_URL` | `https://abc123.public.blob.vercel-storage.com/Kahoot_scores.csv` | Kahoot 成績 Blob URL |
-| `VITE_STUDENTS_BLOB_URL` | `https://abc123.public.blob.vercel-storage.com/students.csv` | 學生名冊 Blob URL |
+| `VITE_STUDENTS_BLOB_URL`      | `https://abc123.public.blob.vercel-storage.com/students.csv`      | 學生名冊 Blob URL    |
 
 **注意**：因為這些 URL 會在前端使用，所以必須加上 `VITE_` 前綴。
 
@@ -245,14 +252,14 @@ vercel blob upload path/to/new/Kahoot_scores.csv --token YOUR_BLOB_READ_WRITE_TO
 可以撰寫腳本透過 Vercel Blob API 自動上傳：
 
 ```typescript
-import { put } from '@vercel/blob';
+import { put } from "@vercel/blob";
 
-const blob = await put('Kahoot_scores.csv', csvFileContent, {
-  access: 'public',
+const blob = await put("Kahoot_scores.csv", csvFileContent, {
+  access: "public",
   token: process.env.BLOB_READ_WRITE_TOKEN,
 });
 
-console.log('Uploaded:', blob.url);
+console.log("Uploaded:", blob.url);
 ```
 
 ## 安全性考量
@@ -289,11 +296,13 @@ console.log('Uploaded:', blob.url);
 ### 預估使用量
 
 假設：
+
 - 學生人數：100 人
 - 週次數量：15 週
 - CSV 檔案大小：約 50 KB
 
 **每月成本**：
+
 - 儲存：50 KB × 2 檔案 = 100 KB（遠低於 500 MB）
 - 頻寬：假設每天 100 次存取，每次 50 KB = 5 MB/天 = 150 MB/月（遠低於 100 GB）
 
@@ -322,4 +331,3 @@ A: 登入 Vercel Dashboard → Storage → kahoot-data → Usage，可以查看�
 使用 Vercel Blob 存放 CSV 資料是一個**安全、方便、免費**的解決方案，特別適合需要保護學生隱私的場景。相比環境變數方案，Vercel Blob 沒有大小限制，且更新資料無需重新部署，是正式環境的最佳選擇。
 
 如果您決定採用此方案，我可以協助您修改程式碼並完成設定。
-
