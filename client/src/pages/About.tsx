@@ -1,6 +1,17 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
+import { getKahootScoresLastModified } from '@/lib/csv';
+import { formatLastModified } from '@/lib/blob';
 
 export default function About() {
+  const [lastModified, setLastModified] = useState<string>('載入中...');
+
+  useEffect(() => {
+    // 取得最後更新時間
+    const lastModifiedDate = getKahootScoresLastModified();
+    setLastModified(formatLastModified(lastModifiedDate));
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <div className="container max-w-4xl py-12">
@@ -65,13 +76,6 @@ export default function About() {
                   </li>
                 </ol>
               </div>
-
-              <div>
-                <h3 className="font-semibold mb-2">同分處理</h3>
-                <p className="text-sm text-muted-foreground">
-                  當多位學生分數相同時，依照學號字典序（由小到大）決定名次順序。
-                </p>
-              </div>
             </CardContent>
           </Card>
 
@@ -113,7 +117,7 @@ export default function About() {
                 若發現成績有誤，請於活動結束後 <strong>一週內</strong> 向課程教師提出申訴。
               </p>
               <p className="text-muted-foreground mt-4">
-                最後更新時間：2025 年 10 月 19 日
+                最後更新時間：{lastModified}
               </p>
             </CardContent>
           </Card>
