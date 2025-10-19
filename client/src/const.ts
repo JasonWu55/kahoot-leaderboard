@@ -1,4 +1,4 @@
-export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+// Removed shared constants as this is a static-only project
 
 export const APP_TITLE = import.meta.env.VITE_APP_TITLE || "App";
 
