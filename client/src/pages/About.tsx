@@ -1,15 +1,18 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState, useEffect } from 'react';
-import { getKahootScoresLastModified } from '@/lib/csv';
+import { fetchKahootScoresLastModified } from '@/lib/csv';
 import { formatLastModified } from '@/lib/blob';
 
 export default function About() {
   const [lastModified, setLastModified] = useState<string>('載入中...');
 
   useEffect(() => {
-    // 取得最後更新時間
-    const lastModifiedDate = getKahootScoresLastModified();
-    setLastModified(formatLastModified(lastModifiedDate));
+    // 主動取得最後更新時間
+    fetchKahootScoresLastModified().then((lastModifiedDate) => {
+      setLastModified(formatLastModified(lastModifiedDate));
+    }).catch(() => {
+      setLastModified('無法載入');
+    });
   }, []);
 
   return (
@@ -124,7 +127,7 @@ export default function About() {
                 若發現成績有誤，請於活動結束後 <strong>一週內</strong> 向課程教師提出申訴。
               </p>
               <p className="text-muted-foreground mt-4">
-                最後更新時間：{lastModified === '未知' ? '本地開發模式（部署後將自動顯示）' : lastModified}
+                最後更新時間：{lastModified === '未知' ? '2025/10/20' : lastModified}
               </p>
             </CardContent>
           </Card>

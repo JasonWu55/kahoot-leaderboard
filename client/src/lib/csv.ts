@@ -154,8 +154,26 @@ export async function loadKahootScores(): Promise<{
 }
 
 /**
- * 取得 Kahoot 成績的最後更新時間
+ * 取得 Kahoot 成績的最後更新時間（從內部快取）
  */
 export function getKahootScoresLastModified(): string | null {
   return kahootScoresLastModified;
 }
+
+/**
+ * 主動取得 Kahoot 成績檔案的最後更新時間
+ * @returns 最後更新時間字串
+ */
+export async function fetchKahootScoresLastModified(): Promise<string | null> {
+  try {
+    const { lastModified } = await fetchCSVContent(
+      KAHOOT_SCORES_BLOB_URL,
+      '/data/Kahoot_scores.csv'
+    );
+    return lastModified;
+  } catch (error) {
+    console.error('Failed to fetch last modified time');
+    return null;
+  }
+}
+
