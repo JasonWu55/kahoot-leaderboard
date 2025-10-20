@@ -159,4 +159,3 @@ export async function loadKahootScores(): Promise<{
 export function getKahootScoresLastModified(): string | null {
   return kahootScoresLastModified;
 }
-

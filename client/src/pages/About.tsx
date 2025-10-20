@@ -76,6 +76,13 @@ export default function About() {
                   </li>
                 </ol>
               </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">同分處理</h3>
+                <p className="text-sm text-muted-foreground">
+                  當多位學生分數相同時，依照學號字典序（由小到大）決定名次順序。
+                </p>
+              </div>
             </CardContent>
           </Card>
 
@@ -117,7 +124,7 @@ export default function About() {
                 若發現成績有誤，請於活動結束後 <strong>一週內</strong> 向課程教師提出申訴。
               </p>
               <p className="text-muted-foreground mt-4">
-                最後更新時間：{lastModified}
+                最後更新時間：{lastModified === '未知' ? '本地開發模式（部署後將自動顯示）' : lastModified}
               </p>
             </CardContent>
           </Card>
