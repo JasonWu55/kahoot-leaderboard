@@ -148,7 +148,7 @@ export default function About() {
                 所有成績計算均在前端完成，確保資料處理的透明性與即時性。
               </p>
               <p className="text-muted-foreground">
-                系統開源於 GitHub，歡迎檢視原始碼。
+                系統開源於 GitHub (<a href="https://github.com/Chihuah/kahoot-leaderboard" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80">https://github.com/Chihuah/kahoot-leaderboard</a>)，歡迎檢視原始碼。
               </p>
             </CardContent>
           </Card>
