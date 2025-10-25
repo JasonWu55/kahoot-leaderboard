@@ -2,6 +2,7 @@
  * Vercel Blob 讀取工具函式
  * 用於從 Vercel Blob Storage 讀取 CSV 檔案
  */
+import { head } from '@vercel/blob';
 
 /**
  * 從 Vercel Blob 讀取檔案內容
@@ -10,6 +11,16 @@
  */
 export async function fetchFromBlob(blobUrl: string): Promise<{ content: string; lastModified: string | null }> {
   try {
+    // 使用 Vercel Blob SDK 取得 metadata（包含 uploadedAt）
+    let uploadedAt: string | null = null;
+    try {
+      const metadata = await head(blobUrl);
+      // uploadedAt 是 Date 型別，轉換為 ISO 字串
+      uploadedAt = metadata.uploadedAt.toISOString();
+    } catch (metadataError) {
+      // 如果無法取得 metadata，繼續使用 HTTP Header
+    }
+    
     const response = await fetch(blobUrl);
     
     if (!response.ok) {
@@ -17,7 +28,9 @@ export async function fetchFromBlob(blobUrl: string): Promise<{ content: string;
     }
     
     const content = await response.text();
-    const lastModified = response.headers.get('last-modified');
+    
+    // 優先使用 uploadedAt，其次使用 Last-Modified Header
+    const lastModified = uploadedAt || response.headers.get('last-modified');
     
     return { content, lastModified };
   } catch (error) {
