@@ -2,14 +2,17 @@ import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, TrendingUp, Trophy, Info } from 'lucide-react';
+import { Loader2, TrendingUp, Trophy, Info, Calendar } from 'lucide-react';
 import LeaderboardTable from '@/components/LeaderboardTable';
 import SeasonTable from '@/components/SeasonTable';
+import MonthlyTable from '@/components/MonthlyTable';
 import ViewToggle from '@/components/ViewToggle';
 import WeekPicker from '@/components/WeekPicker';
+import MonthPicker from '@/components/MonthPicker';
 import { loadStudents, loadKahootScores } from '@/lib/csv';
-import { computeAllWeeks, computeSeason } from '@/lib/compute';
-import type { Student, WeeklyScore, SeasonScore } from '@/lib/types';
+import { computeAllWeeks, computeSeason, computeMonthly } from '@/lib/compute';
+import { MONTH_WEEKS, BEST_N_WEEKS } from '@/const';
+import type { Student, WeeklyScore, SeasonScore, MonthlyScore } from '@/lib/types';
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -20,11 +23,20 @@ export default function Home() {
   const [weekIds, setWeekIds] = useState<string[]>([]);
   const [weeklyScores, setWeeklyScores] = useState<Map<string, WeeklyScore[]>>(new Map());
   const [seasonScores, setSeasonScores] = useState<SeasonScore[]>([]);
+  const [rawScoresMap, setRawScoresMap] = useState<Map<string, Map<string, number>>>(new Map());
+  
+  // 月排行狀態
+  const [monthlyScores, setMonthlyScores] = useState<Map<string, MonthlyScore[]>>(new Map());
+  const [availableMonths, setAvailableMonths] = useState<string[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
   
   // UI 狀態
   const [viewMode, setViewMode] = useState<'raw' | 'final'>('final');
   const [selectedWeek, setSelectedWeek] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'weekly' | 'season'>('weekly');
+  const [activeTab, setActiveTab] = useState<'weekly' | 'monthly' | 'season'>('weekly');
+
+  // 檢查是否啟用月排行功能
+  const isMonthlyEnabled = MONTH_WEEKS && Object.keys(MONTH_WEEKS).length > 0;
 
   // 載入資料
   useEffect(() => {
@@ -48,6 +60,21 @@ export default function Home() {
         setWeekIds(weeks);
         setSelectedWeek(weeks[weeks.length - 1]); // 預設選擇最新週次
 
+        // 建立原始分數 Map（用於月排行同分判斷）
+        const rawMap = new Map<string, Map<string, number>>();
+        scores.forEach((row) => {
+          const studentId = String(row.student_id);
+          if (!rawMap.has(studentId)) {
+            rawMap.set(studentId, new Map());
+          }
+          const studentWeeks = rawMap.get(studentId)!;
+          weeks.forEach((weekId) => {
+            const rawScore = Number(row[weekId]) || 0;
+            studentWeeks.set(weekId, rawScore);
+          });
+        });
+        setRawScoresMap(rawMap);
+
         // 計算所有週次成績
         const allWeeksScores = computeAllWeeks(weeks, scores);
         setWeeklyScores(allWeeksScores);
@@ -57,8 +84,26 @@ export default function Home() {
         allWeeksScores.forEach((scores) => {
           allWeeksFlat.push(...scores);
         });
-        const seasonScoresData = computeSeason(allWeeksFlat, 10);
+        const seasonScoresData = computeSeason(allWeeksFlat, BEST_N_WEEKS);
         setSeasonScores(seasonScoresData);
+
+        // 計算月排行（如果啟用）
+        if (isMonthlyEnabled && MONTH_WEEKS) {
+          const monthlyMap = new Map<string, MonthlyScore[]>();
+          const months = Object.keys(MONTH_WEEKS!);
+          
+          months.forEach((month) => {
+            const monthWeeks = MONTH_WEEKS![month];
+            const monthlyData = computeMonthly(monthWeeks, allWeeksScores, rawMap);
+            monthlyMap.set(month, monthlyData);
+          });
+
+          setMonthlyScores(monthlyMap);
+          setAvailableMonths(months);
+          if (months.length > 0) {
+            setSelectedMonth(months[0]); // 預設選擇第一個月份
+          }
+        }
 
       } catch (err) {
         console.error('載入資料失敗:', err);
@@ -69,7 +114,7 @@ export default function Home() {
     }
 
     loadData();
-  }, []);
+  }, [isMonthlyEnabled]);
 
   if (loading) {
     return (
@@ -93,8 +138,9 @@ export default function Home() {
   }
 
   const currentWeekScores = weeklyScores.get(selectedWeek) || [];
+  const currentMonthScores = monthlyScores.get(selectedMonth) || [];
   const totalWeeks = weekIds.length;
-  const isSeasonReady = totalWeeks >= 10;
+  const isSeasonReady = totalWeeks >= BEST_N_WEEKS;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
@@ -124,14 +170,20 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="container py-8">
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'weekly' | 'season')}>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'weekly' | 'monthly' | 'season')}>
           {/* Tabs Navigation */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <TabsList className="grid w-full sm:w-[400px] grid-cols-2">
+            <TabsList className={`grid w-full ${isMonthlyEnabled ? 'sm:w-[600px] grid-cols-3' : 'sm:w-[400px] grid-cols-2'}`}>
               <TabsTrigger value="weekly" className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" />
                 週排行
               </TabsTrigger>
+              {isMonthlyEnabled && (
+                <TabsTrigger value="monthly" className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  月排行
+                </TabsTrigger>
+              )}
               <TabsTrigger value="season" className="flex items-center gap-2">
                 <Trophy className="h-4 w-4" />
                 學期總排行
@@ -140,7 +192,7 @@ export default function Home() {
             
             <div className="flex-1" />
             
-            <ViewToggle viewMode={viewMode} onToggle={setViewMode} />
+            {activeTab !== 'monthly' && <ViewToggle viewMode={viewMode} onToggle={setViewMode} />}
           </div>
 
           {/* Weekly Tab */}
@@ -173,14 +225,43 @@ export default function Home() {
             </Card>
           </TabsContent>
 
+          {/* Monthly Tab */}
+          {isMonthlyEnabled && (
+            <TabsContent value="monthly" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <CardTitle>月排行榜</CardTitle>
+                      <CardDescription>
+                        顯示該月各週的週最終分加總，前三名將獲得獎牌 🥇🥈🥉
+                      </CardDescription>
+                    </div>
+                    <MonthPicker
+                      months={availableMonths}
+                      selected={selectedMonth}
+                      onChange={setSelectedMonth}
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <MonthlyTable
+                    data={currentMonthScores}
+                    students={students}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+
           {/* Season Tab */}
           <TabsContent value="season" className="space-y-4">
             {!isSeasonReady && (
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription>
-                  目前成績不足 10 週（目前：{totalWeeks} 週），此為臨時排名，尚待結算。
-                  學期總分將在累積滿 10 週後正式計算。
+                  目前成績不足 {BEST_N_WEEKS} 週（目前：{totalWeeks} 週），此為臨時排名，尚待結算。
+                  學期總分將在累積滿 {BEST_N_WEEKS} 週後正式計算。
                 </AlertDescription>
               </Alert>
             )}
@@ -191,7 +272,7 @@ export default function Home() {
                 <CardDescription>
                   {viewMode === 'raw' 
                     ? '顯示各週原始分數的平均值（僅供參考）' 
-                    : `取最佳 10 週的週最終分加總（目前已有 ${totalWeeks} 週）`}
+                    : `取最佳 ${BEST_N_WEEKS} 週的週最終分加總（目前已有 ${totalWeeks} 週）`}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -208,3 +289,4 @@ export default function Home() {
     </div>
   );
 }
+

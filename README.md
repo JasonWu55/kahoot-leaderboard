@@ -5,6 +5,7 @@
 ## 功能特色
 
 - ✅ **週排行榜**：顯示每週 Kahoot 成績排名，支援原始分數與課堂參與換算兩種模式
+- ✅ **月排行榜（月冠軍）**：按月份統計成績，前三名顯示 🥇🥈🥉 獎牌與背景色
 - ✅ **學期總排行榜**：取最佳 10 週成績加總，自動計算百分制
 - ✅ **標準化分數**：將原始分數標準化至 0-100 分，確保不同週次的公平性
 - ✅ **名次加分**：前 10 名給予額外加分（1名:+5, 2名:+3, 3名:+2, 4-10名:+1）
@@ -64,6 +65,7 @@ kahoot-leaderboard/
 ├── README.md                        # 專案說明文件
 ├── VERCEL_BLOB_GUIDE.md             # Vercel Blob 完整指南（含方案比較）
 ├── VERCEL_BLOB_SETUP.md             # Vercel Blob 詳細設定步驟
+├── MONTH_WEEKS_CONFIG.md			 # 月排行設定說明 (變數：MONTH_WEEKS)
 ├── components.json                  # shadcn/ui 設定檔
 ├── package.json                     # 專案依賴與腳本
 ├── pnpm-lock.yaml                   # pnpm 鎖定檔
@@ -86,6 +88,15 @@ kahoot-leaderboard/
 3. **週最終分** = 標準化分數 + 名次加分
 
 **注意**：週成績計算**無保底機制**，標準化分數可低於 60 分。
+
+### 月排行計算
+
+1. **月總分**：加總指定月份內所有週次的「週最終分」
+   - 例如：10月 = ch01 + ch02 + ch03 + ch04 的週最終分加總
+2. **同分處理**：若月總分相同，則比較原始分數加總（高者排前）
+3. **前三名獎勵**：月排行前三名會顯示 🥇🥈🥉 獎牌與背景色
+
+**設定月份對應週次**：在 `client/src/const.ts` 中修改 `MONTH_WEEKS` 變數，如果不需要月排行功能，可以註解或刪除此設定。更多詳細介紹，請見說明文件`MONTH_WEEKS_CONFIG.md`
 
 ### 學期總分計算
 
@@ -158,7 +169,7 @@ student_id,ch01,ch02,ch03,ch04,ch05,ch06,ch07,ch08,ch09,ch10,ch11,ch12
 
 1. 在 Vercel Dashboard 建立 Blob Store
 2. 使用 Vercel CLI 上傳 CSV 檔案
-3. 設定環境變數（`VITE_KAHOOT_SCORES_BLOB_URL` 和 `VITE_STUDENTS_BLOB_URL`）
+3. 設定環境變數（`VITE_KAHOOT_SCORES_BLOB_URL` 和 `VITE_STUDENTS_BLOB_URL` 或 `VITE_MONTH_WEEKS`）
 4. 推送程式碼並部署
 
 ### 方法一：使用 Vercel Blob（推薦）
@@ -243,7 +254,7 @@ A: 修改 `client/src/index.css` 中的 CSS 變數，或直接編輯各元件的
 
 ## 模擬測試資料
 
-專案包含 12 週的模擬測試資料，包含 73 位學生，出席率約 86.5%。您可以使用此資料測試系統功能。
+專案包含 12 週的模擬測試資料（`Kahoot_scores_12weeks.csv`），包含 73 位學生，出席率約 86.5%。您可以使用此資料測試系統功能。
 
 ## 授權
 

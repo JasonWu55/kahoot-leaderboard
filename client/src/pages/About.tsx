@@ -58,6 +58,24 @@ export default function About() {
                   </li>
                 </ol>
               </div>
+			  
+			  <div>
+                <h3 className="font-semibold mb-2">月排行計算（月冠軍）</h3>
+                <ol className="list-decimal list-inside space-y-2 text-sm">
+                  <li>
+                    <strong>月總分</strong>：加總指定月份內所有週次的「週最終分」
+                    <div className="ml-6 mt-1 text-muted-foreground">
+                      例如：10月 = ch01 + ch02 + ch03 + ch04 的週最終分加總
+                    </div>
+                  </li>
+                  <li>
+                    <strong>同分處理</strong>：若月總分相同，則比較原始分數加總（高者排前）
+                  </li>
+                  <li>
+                    <strong>前三名獎勵</strong>：月排行前三名會顯示 🥇🥈🥉 獎牌與背景色
+                  </li>
+                </ol>
+              </div>
 
               <div>
                 <h3 className="font-semibold mb-2">學期總分計算</h3>
@@ -79,6 +97,8 @@ export default function About() {
                   </li>
                 </ol>
               </div>
+
+              
             </CardContent>
           </Card>
 
@@ -120,7 +140,7 @@ export default function About() {
                 若發現成績有誤，請於活動結束後 <strong>一週內</strong> 向課程教師提出申訴。
               </p>
               <p className="text-muted-foreground mt-4">
-                最後更新時間：{lastModified === '未知' ? '2025/10/20' : lastModified}
+                最後更新時間：{lastModified === '未知' ? '本地開發模式（部署後將自動顯示）' : lastModified}
               </p>
             </CardContent>
           </Card>
@@ -141,7 +161,7 @@ export default function About() {
                 所有成績計算均在前端完成，確保資料處理的透明性與即時性。
               </p>
               <p className="text-muted-foreground">
-                系統開源於 <a href="https://github.com/Chihuah/kahoot-leaderboard" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80">GitHub</a>，歡迎檢視原始碼。
+                系統開源於 GitHub，歡迎檢視原始碼。
               </p>
             </CardContent>
           </Card>

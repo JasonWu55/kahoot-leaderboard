@@ -45,6 +45,17 @@ export type SeasonScore = {
 };
 
 /**
+ * 月排行成績資料
+ */
+export type MonthlyScore = {
+  student_id: string;
+  week_scores: { week_id: string; final_score: number }[]; // 該月各週的週最終分
+  month_total: number; // 月總分 = 週最終分加總
+  raw_total: number; // 原始分數加總（用於同分判斷）
+  rank: number; // 月排名
+};
+
+/**
  * CSV 原始資料格式（從 Kahoot_scores.csv 讀取）
  */
 export type KahootScoresRow = {

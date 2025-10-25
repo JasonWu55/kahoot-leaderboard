@@ -1,4 +1,4 @@
-import type { RawRow, WeeklyScore, SeasonScore, KahootScoresRow } from './types';
+import type { RawRow, WeeklyScore, SeasonScore, MonthlyScore, KahootScoresRow } from './types';
 
 /**
  * 計算名次加分
@@ -186,5 +186,88 @@ export function computeAllWeeks(
   }
   
   return result;
+}
+
+
+
+/**
+ * 計算月排行
+ * @param monthWeeks 該月份包含的週次列表
+ * @param allWeeklyScores 所有週次的成績資料（Map<weekId, WeeklyScore[]>）
+ * @param rawScoresMap 原始分數資料（Map<student_id, Map<week_id, raw_score>>）
+ * @returns 月排行資料
+ */
+export function computeMonthly(
+  monthWeeks: string[],
+  allWeeklyScores: Map<string, WeeklyScore[]>,
+  rawScoresMap: Map<string, Map<string, number>>
+): MonthlyScore[] {
+  // 收集所有學生的月成績
+  const studentMonthlyMap = new Map<string, {
+    weekScores: Map<string, number>; // week_id -> final_score
+    rawScores: Map<string, number>;  // week_id -> raw_score
+  }>();
+
+  // 遍歷每個週次
+  monthWeeks.forEach((weekId) => {
+    const weeklyScores = allWeeklyScores.get(weekId);
+    if (!weeklyScores) return;
+
+    weeklyScores.forEach((score) => {
+      if (!studentMonthlyMap.has(score.student_id)) {
+        studentMonthlyMap.set(score.student_id, {
+          weekScores: new Map(),
+          rawScores: new Map()
+        });
+      }
+
+      const studentData = studentMonthlyMap.get(score.student_id)!;
+      studentData.weekScores.set(weekId, score.final_score);
+
+      // 取得原始分數
+      const rawScore = rawScoresMap.get(score.student_id)?.get(weekId) || 0;
+      studentData.rawScores.set(weekId, rawScore);
+    });
+  });
+
+  // 計算每位學生的月總分
+  const monthlyScores: MonthlyScore[] = [];
+
+  studentMonthlyMap.forEach((data, studentId) => {
+    const weekScores = Array.from(data.weekScores.values());
+    const rawScores = Array.from(data.rawScores.values());
+
+    const monthTotal = weekScores.reduce((sum, score) => sum + score, 0);
+    const rawTotal = rawScores.reduce((sum, score) => sum + score, 0);
+
+    monthlyScores.push({
+      student_id: studentId,
+      week_scores: Array.from(data.weekScores.entries()).map(([weekId, score]) => ({
+        week_id: weekId,
+        final_score: score
+      })),
+      month_total: Math.round(monthTotal * 100) / 100,
+      raw_total: rawTotal,
+      rank: 0 // 待排序後填入
+    });
+  });
+
+  // 排序：先按月總分降序，若相同則按原始分數總和降序，再按學號升序
+  monthlyScores.sort((a, b) => {
+    if (b.month_total !== a.month_total) {
+      return b.month_total - a.month_total;
+    }
+    if (b.raw_total !== a.raw_total) {
+      return b.raw_total - a.raw_total;
+    }
+    return a.student_id.localeCompare(b.student_id);
+  });
+
+  // 填入名次
+  monthlyScores.forEach((score, index) => {
+    score.rank = index + 1;
+  });
+
+  return monthlyScores;
 }
 
