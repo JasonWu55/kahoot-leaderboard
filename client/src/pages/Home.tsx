@@ -35,8 +35,8 @@ export default function Home() {
   const [selectedWeek, setSelectedWeek] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'weekly' | 'monthly' | 'season'>('weekly');
 
-  // 檢查是否啟用月排行功能
-  const isMonthlyEnabled = MONTH_WEEKS && Object.keys(MONTH_WEEKS).length > 0;
+  // 檢查是否定義 MONTH_WEEKS
+  const hasMonthWeeksConfig = MONTH_WEEKS && Object.keys(MONTH_WEEKS).length > 0;
 
   // 載入資料
   useEffect(() => {
@@ -88,20 +88,29 @@ export default function Home() {
         setSeasonScores(seasonScoresData);
 
         // 計算月排行（如果啟用）
-        if (isMonthlyEnabled && MONTH_WEEKS) {
+        if (hasMonthWeeksConfig && MONTH_WEEKS) {
           const monthlyMap = new Map<string, MonthlyScore[]>();
           const months = Object.keys(MONTH_WEEKS!);
+          const validMonths: string[] = [];
           
           months.forEach((month) => {
             const monthWeeks = MONTH_WEEKS![month];
-            const monthlyData = computeMonthly(monthWeeks, allWeeksScores, rawMap);
-            monthlyMap.set(month, monthlyData);
+            
+            // 檢查所有週次是否都存在於 CSV 資料中
+            const allWeeksExist = monthWeeks.every((weekId) => weeks.includes(weekId));
+            
+            if (allWeeksExist) {
+              // 只有當所有週次都存在時，才計算月排行
+              const monthlyData = computeMonthly(monthWeeks, allWeeksScores, rawMap);
+              monthlyMap.set(month, monthlyData);
+              validMonths.push(month);
+            }
           });
 
           setMonthlyScores(monthlyMap);
-          setAvailableMonths(months);
-          if (months.length > 0) {
-            setSelectedMonth(months[0]); // 預設選擇第一個月份
+          setAvailableMonths(validMonths);
+          if (validMonths.length > 0) {
+            setSelectedMonth(validMonths[0]); // 預設選擇第一個有效月份
           }
         }
 
@@ -114,7 +123,7 @@ export default function Home() {
     }
 
     loadData();
-  }, [isMonthlyEnabled]);
+  }, [hasMonthWeeksConfig]);
 
   if (loading) {
     return (
@@ -173,12 +182,12 @@ export default function Home() {
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'weekly' | 'monthly' | 'season')}>
           {/* Tabs Navigation */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <TabsList className={`grid w-full ${isMonthlyEnabled ? 'sm:w-[600px] grid-cols-3' : 'sm:w-[400px] grid-cols-2'}`}>
+            <TabsList className={`grid w-full ${availableMonths.length > 0 ? 'sm:w-[600px] grid-cols-3' : 'sm:w-[400px] grid-cols-2'}`}>
               <TabsTrigger value="weekly" className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" />
                 週排行
               </TabsTrigger>
-              {isMonthlyEnabled && (
+              {availableMonths.length > 0 && (
                 <TabsTrigger value="monthly" className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
                   月排行
@@ -226,7 +235,7 @@ export default function Home() {
           </TabsContent>
 
           {/* Monthly Tab */}
-          {isMonthlyEnabled && (
+          {availableMonths.length > 0 && (
             <TabsContent value="monthly" className="space-y-4">
               <Card>
                 <CardHeader>
