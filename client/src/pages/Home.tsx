@@ -244,6 +244,12 @@ export default function Home() {
                       <CardTitle>月排行榜</CardTitle>
                       <CardDescription>
                         顯示該月各週的週最終分加總，前三名將獲得獎牌 🥇🥈🥉
+                        {MONTH_WEEKS && selectedMonth && MONTH_WEEKS[selectedMonth] && (
+                          <>
+                            <br />
+                            本月包含週次：{MONTH_WEEKS[selectedMonth].join(', ')}
+                          </>
+                        )}
                       </CardDescription>
                     </div>
                     <MonthPicker
