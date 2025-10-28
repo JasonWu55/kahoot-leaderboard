@@ -1,4 +1,5 @@
 import type { SeasonScore, Student } from '@/lib/types';
+import { formatStudentId } from '@/lib/utils';
 import {
   Table,
   TableBody,
@@ -52,7 +53,8 @@ export default function SeasonTable({
         <TableBody>
           {scores.map((score) => {
             const student = students.get(score.student_id);
-            const displayName = student?.display_name || score.student_id;
+            const formattedId = formatStudentId(score.student_id);
+            const displayName = student?.display_name || formattedId;
             
             // 計算原始分數平均（用於 Raw 模式）
             const totalRawScore = score.weekly.reduce((sum, w) => sum + w.raw_score, 0);
@@ -66,7 +68,7 @@ export default function SeasonTable({
                   {score.rank}
                 </TableCell>
                 <TableCell className="font-mono text-sm">
-                  {score.student_id}
+                  {formattedId}
                 </TableCell>
                 <TableCell>{displayName}</TableCell>
                 {viewMode === 'raw' ? (
@@ -99,4 +101,3 @@ export default function SeasonTable({
     </div>
   );
 }
-

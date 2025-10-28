@@ -1,0 +1,9 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-4173}:${PORT:-4173}"
+    environment:
+      PORT: "${PORT:-4173}"

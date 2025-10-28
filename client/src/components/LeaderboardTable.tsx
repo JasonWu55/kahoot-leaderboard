@@ -1,4 +1,5 @@
 import type { WeeklyScore, Student } from '@/lib/types';
+import { formatStudentId } from '@/lib/utils';
 import {
   Table,
   TableBody,
@@ -50,7 +51,8 @@ export default function LeaderboardTable({
         <TableBody>
           {scores.map((score) => {
             const student = students.get(score.student_id);
-            const displayName = student?.display_name || score.student_id;
+            const formattedId = formatStudentId(score.student_id);
+            const displayName = student?.display_name || formattedId;
             
             return (
               <TableRow key={score.student_id}>
@@ -58,7 +60,7 @@ export default function LeaderboardTable({
                   {score.rank}
                 </TableCell>
                 <TableCell className="font-mono text-sm">
-                  {score.student_id}
+                  {formattedId}
                 </TableCell>
                 <TableCell>{displayName}</TableCell>
                 {viewMode === 'raw' ? (
@@ -89,4 +91,3 @@ export default function LeaderboardTable({
     </div>
   );
 }
-

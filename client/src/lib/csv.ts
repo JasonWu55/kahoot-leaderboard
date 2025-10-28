@@ -1,41 +1,34 @@
 import Papa from 'papaparse';
 import type { Student, KahootScoresRow } from './types';
-import { fetchFromBlob, isValidBlobUrl } from './blob';
 
 // Vercel Blob URLs（從環境變數讀取）
-const KAHOOT_SCORES_BLOB_URL = import.meta.env.VITE_KAHOOT_SCORES_BLOB_URL;
-const STUDENTS_BLOB_URL = import.meta.env.VITE_STUDENTS_BLOB_URL;
+const KAHOOT_SCORES_CSV_URL = import.meta.env.VITE_KAHOOT_SCORES_CSV_URL;
+const STUDENTS_CSV_URL = import.meta.env.VITE_STUDENTS_CSV_URL;
 
 // 儲存最後更新時間
 let kahootScoresLastModified: string | null = null;
 
 /**
- * 讀取 CSV 內容（優先從 Vercel Blob，否則從 public 目錄）
- * @param blobUrl Vercel Blob URL（可選）
- * @param publicPath public 目錄路徑（降級方案）
+ * 讀取 CSV 內容（從提供的 URL）
+ * @param csvUrl CSV 原始資料的 URL
+ * @param label 用於錯誤訊息的資料來源名稱
  * @returns CSV 內容（文字）與最後更新時間
  */
 async function fetchCSVContent(
-  blobUrl: string | undefined, 
-  publicPath: string
+  csvUrl: string | undefined,
+  label: 'students' | 'kahoot'
 ): Promise<{ content: string; lastModified: string | null }> {
-  // 優先從 Vercel Blob 讀取
-  if (isValidBlobUrl(blobUrl)) {
-    try {
-      return await fetchFromBlob(blobUrl!);
-    } catch (error) {
-      // 降級至 public 目錄，不顯示錯誤訊息避免洩漏 URL
-    }
+  if (!csvUrl) {
+    throw new Error(`Missing ${label} CSV URL. 請設定對應的環境變數。`);
   }
-  
-  // 降級方案：從 public 目錄讀取（開發環境）
-  const response = await fetch(publicPath);
+
+  const response = await fetch(csvUrl, { cache: 'no-store' });
   if (!response.ok) {
-    throw new Error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
+    throw new Error(`Failed to fetch ${label} CSV: ${response.status} ${response.statusText}`);
   }
+
   const content = await response.text();
   const lastModified = response.headers.get('last-modified');
-  
   return { content, lastModified };
 }
 
@@ -83,10 +76,10 @@ function parseCSV<T>(
  */
 export async function loadStudents(): Promise<Map<string, Student>> {
   try {
-    // 從 Vercel Blob 或 public 目錄讀取
+    // 從提供的 URL 讀取學生名冊
     const { content } = await fetchCSVContent(
-      STUDENTS_BLOB_URL,
-      '/data/students.csv'
+      STUDENTS_CSV_URL,
+      'students'
     );
     
     // 不使用 dynamicTyping，保持所有欄位為字串
@@ -112,10 +105,10 @@ export async function loadKahootScores(): Promise<{
   scores: KahootScoresRow[];
 }> {
   try {
-    // 從 Vercel Blob 或 public 目錄讀取
+    // 從提供的 URL 讀取 Kahoot 成績
     const { content, lastModified } = await fetchCSVContent(
-      KAHOOT_SCORES_BLOB_URL,
-      '/data/Kahoot_scores.csv'
+      KAHOOT_SCORES_CSV_URL,
+      'kahoot'
     );
     
     // 儲存最後更新時間
@@ -167,8 +160,8 @@ export function getKahootScoresLastModified(): string | null {
 export async function fetchKahootScoresLastModified(): Promise<string | null> {
   try {
     const { lastModified } = await fetchCSVContent(
-      KAHOOT_SCORES_BLOB_URL,
-      '/data/Kahoot_scores.csv'
+      KAHOOT_SCORES_CSV_URL,
+      'kahoot'
     );
     return lastModified;
   } catch (error) {
@@ -176,4 +169,3 @@ export async function fetchKahootScoresLastModified(): Promise<string | null> {
     return null;
   }
 }
-

@@ -1,5 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { MonthlyScore, Student } from '@/lib/types';
+import { formatStudentId } from '@/lib/utils';
 
 type MonthlyTableProps = {
   data: MonthlyScore[];
@@ -46,7 +47,8 @@ export default function MonthlyTable({ data, students }: MonthlyTableProps) {
         <TableBody>
           {data.map((row) => {
             const student = students.get(row.student_id);
-            const displayName = student?.display_name || row.student_id;
+            const formattedId = formatStudentId(row.student_id);
+            const displayName = student?.display_name || formattedId;
             const medal = getMedalIcon(row.rank);
             const bgStyle = getTopThreeStyle(row.rank);
 
@@ -61,7 +63,7 @@ export default function MonthlyTable({ data, students }: MonthlyTableProps) {
                   {medal && <span className="mr-1">{medal}</span>}
                   {row.rank}
                 </TableCell>
-                <TableCell className="font-mono">{row.student_id}</TableCell>
+                <TableCell className="font-mono">{formattedId}</TableCell>
                 <TableCell>{displayName}</TableCell>
                 <TableCell className="font-mono text-sm">{weekScoresText}</TableCell>
                 <TableCell className="text-right font-semibold text-primary">
@@ -75,4 +77,3 @@ export default function MonthlyTable({ data, students }: MonthlyTableProps) {
     </div>
   );
 }
-

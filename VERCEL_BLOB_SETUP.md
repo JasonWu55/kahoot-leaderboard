@@ -123,35 +123,35 @@ vercel blob put client/public/data/students.csv \
 2. 點擊 **「Settings」** → **「Environment Variables」**
 3. 新增以下兩個變數：
 
-#### 變數 1：Kahoot 成績 Blob URL
+#### 變數 1：Kahoot 成績 CSV URL
 
-- **Name**：`VITE_KAHOOT_SCORES_BLOB_URL`
-- **Value**：貼上您的 `Kahoot_scores.csv` Blob URL
+- **Name**：`VITE_KAHOOT_SCORES_CSV_URL`
+- **Value**：貼上您的 `Kahoot_scores.csv` Blob URL（或其他可公開存取的網址）
 - **Environments**：勾選 `Production`, `Preview`, `Development`（建議全選）
 - 點擊 **「Save」**
 
-#### 變數 2：學生名冊 Blob URL
+#### 變數 2：學生名冊 CSV URL
 
-- **Name**：`VITE_STUDENTS_BLOB_URL`
-- **Value**：貼上您的 `students.csv` Blob URL
+- **Name**：`VITE_STUDENTS_CSV_URL`
+- **Value**：貼上您的 `students.csv` Blob URL（或其他可公開存取的網址）
 - **Environments**：勾選 `Production`, `Preview`, `Development`（建議全選）
 - 點擊 **「Save」**
 
 ### 3.2 本地開發設定（可選）
 
-如果您想在本地開發時也使用 Vercel Blob，可以建立 `.env.local` 檔案：
+如果您想在本地開發時也使用相同的網址，可以建立 `.env.local` 檔案：
 
 ```bash
 cd /path/to/kahoot-leaderboard
 cat > .env.local << EOF
-VITE_KAHOOT_SCORES_BLOB_URL=https://your-blob-url.public.blob.vercel-storage.com/Kahoot_scores.csv
-VITE_STUDENTS_BLOB_URL=https://your-blob-url.public.blob.vercel-storage.com/students.csv
+VITE_KAHOOT_SCORES_CSV_URL=https://your-blob-url.public.blob.vercel-storage.com/Kahoot_scores.csv
+VITE_STUDENTS_CSV_URL=https://your-blob-url.public.blob.vercel-storage.com/students.csv
 EOF
 ```
 
 **注意**：`.env.local` 已在 `.gitignore` 中，不會被提交至 Git。
 
-如果不設定，系統會自動降級使用 `client/public/data/` 目錄中的檔案。
+若僅在本地測試，也可以改填 `/data/Kahoot_scores.csv` 與 `/data/students.csv`，使用專案 `public` 目錄的示範資料。
 
 ## 🔄 步驟四：重新部署
 
@@ -177,11 +177,11 @@ Vercel 會自動偵測 Git 推送並開始部署。您也可以手動觸發：
 
 1. 點擊部署連結開啟網站
 2. 開啟瀏覽器開發者工具（F12）
-3. 切換至 **「Console」** 標籤
+3. 切換至 **「Network」** 標籤
 4. 重新整理頁面
-5. 查看是否有 `[CSV] Using Vercel Blob:` 的日誌
+5. 確認是否有對 `Kahoot_scores.csv`、`students.csv` 的請求並成功回應（狀態碼 200）
 
-如果看到這行日誌，表示成功從 Vercel Blob 讀取資料！
+若請求成功且頁面顯示排行榜資料，即表示已從對應 URL 讀取資料。
 
 ## 📝 步驟五：更新成績資料
 

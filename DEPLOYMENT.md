@@ -55,81 +55,42 @@
 1. **Framework Preset**：Vercel 應該會自動偵測為「Vite」
 2. **Root Directory**：保持預設（留空）
 3. **Build Command**：`pnpm build`（或保持預設）
-4. **Output Directory**：`client/dist`（或保持預設）
+4. **Output Directory**：`dist/public`（或保持預設）
 
 ### 步驟 4：設定環境變數（保護隱私資料）
 
 這是**最重要**的步驟，用於安全地上傳 CSV 資料。
 
-#### 方法 A：使用環境變數（推薦）
 
-1. **準備 CSV 內容**：
-   - 開啟 `Kahoot_scores.csv`，複製**完整內容**（包含標題列）
-   - 開啟 `students.csv`，複製**完整內容**
+#### 方法 A：使用環境變數指定 CSV URL（推薦）
+
+1. **準備 CSV 來源**：
+   - 將 `Kahoot_scores.csv` 與 `students.csv` 上傳至 Vercel Blob 或任何可公開讀取的儲存空間
+   - 取得兩個檔案的 HTTPS 連結（亦可使用相對路徑 `/data/*.csv` 於本地開發）
 
 2. **在 Vercel 設定環境變數**：
-   - 在 Vercel 專案設定頁面，找到「Environment Variables」
+   - 在專案設定頁面點選「Environment Variables」
    - 新增以下變數：
 
    | Name | Value |
    |------|-------|
-   | `VITE_KAHOOT_SCORES_CSV` | 貼上 Kahoot_scores.csv 的完整內容 |
-   | `VITE_STUDENTS_CSV` | 貼上 students.csv 的完整內容 |
+   | `VITE_KAHOOT_SCORES_CSV_URL` | 貼上 Kahoot_scores.csv 的讀取網址 |
+   | `VITE_STUDENTS_CSV_URL` | 貼上 students.csv 的讀取網址 |
 
-   - 選擇適用環境：`Production`, `Preview`, `Development`（全選）
+   - 選擇適用環境：`Production`, `Preview`, `Development`（建議全選）
    - 點擊「Save」
 
-3. **修改程式碼以讀取環境變數**：
+3. **（可選）設定本地開發環境**：
+   - 建立 `.env.local`，內容例如：
 
-   編輯 `client/src/lib/csv.ts`，在 `loadKahootScores` 函式開頭加入：
+```env
+VITE_KAHOOT_SCORES_CSV_URL=/data/Kahoot_scores.csv
+VITE_STUDENTS_CSV_URL=/data/students.csv
+```
 
-   ```typescript
-   export async function loadKahootScores(): Promise<{
-     weekIds: string[];
-     scores: KahootScoresRow[];
-   }> {
-     try {
-       // 優先從環境變數讀取（Vercel 部署時使用）
-       const envCsvContent = import.meta.env.VITE_KAHOOT_SCORES_CSV;
-       
-       if (envCsvContent) {
-         // 直接解析環境變數中的 CSV 內容
-         return new Promise((resolve, reject) => {
-           Papa.parse<Record<string, string | number>>(envCsvContent, {
-             header: true,
-             skipEmptyLines: true,
-             dynamicTyping: true,
-             transformHeader: (header) => header.trim().toLowerCase(),
-             complete: (results) => {
-               // ... 處理解析結果（與原本邏輯相同）
-             },
-             error: (error: Error) => {
-               reject(error);
-             },
-           });
-         });
-       }
-       
-       // 開發環境：從 public 目錄讀取
-       const rawData = await fetchCSV<Record<string, string | number>>('/data/Kahoot_scores.csv');
-       // ... 原本的處理邏輯
-     } catch (error) {
-       console.error('讀取 Kahoot 成績失敗:', error);
-       throw error;
-     }
-   }
-   ```
+> 專案程式碼已預設支援從上述環境變數讀取資料，無需額外修改。
 
-   同樣修改 `loadStudents` 函式。
-
-4. **推送修改後的程式碼**：
-   ```bash
-   git add .
-   git commit -m "Add environment variable support for CSV data"
-   git push
-   ```
-
-5. **Vercel 會自動重新部署**，這次會使用環境變數中的資料。
+4. **推送或重新部署**：確保環境變數生效後重新部署即可。
 
 #### 方法 B：使用 Vercel Blob（進階）
 
@@ -158,16 +119,9 @@
 ### 使用環境變數方式
 
 1. **編輯新的 CSV 檔案**（例如新增一週的成績）
-2. **複製完整內容**
-3. **更新 Vercel 環境變數**：
-   - 進入 Vercel 專案設定
-   - 找到「Environment Variables」
-   - 編輯 `VITE_KAHOOT_SCORES_CSV`
-   - 貼上新的 CSV 內容
-   - 點擊「Save」
-4. **觸發重新部署**：
-   - 方法 1：在 Vercel 專案頁面點擊「Deployments」→「Redeploy」
-   - 方法 2：推送任何程式碼變更至 GitHub（例如更新 README）
+2. **重新上傳檔案**到您選用的儲存空間（如 Vercel Blob），覆蓋原先的檔案
+3. 若網址變動，請同步更新 `VITE_KAHOOT_SCORES_CSV_URL` 或 `VITE_STUDENTS_CSV_URL`
+4. 無需重新部署即可在下一次載入時取得最新資料；若有快取，可手動重新整理或觸發重新部署確保更新
 
 ### 使用 Git 推送方式（如果 CSV 在 public 目錄）
 
@@ -269,4 +223,3 @@ Vercel 預設會在每次推送至 `main` 分支時自動部署。如果您想�
 ---
 
 **祝您部署順利！** 🎉
-

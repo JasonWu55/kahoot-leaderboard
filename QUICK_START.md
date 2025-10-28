@@ -111,13 +111,13 @@ vercel blob upload client/public/data/students.csv --token YOUR_TOKEN
 3. 新增兩個變數：
 
 **變數 1：**
-- Name: `VITE_KAHOOT_SCORES_BLOB_URL`
+- Name: `VITE_KAHOOT_SCORES_CSV_URL`
 - Value: 貼上您的 `Kahoot_scores.csv` Blob URL
 - Environments: 勾選全部（Production, Preview, Development）
 - 點擊 **「Save」**
 
 **變數 2：**
-- Name: `VITE_STUDENTS_BLOB_URL`
+- Name: `VITE_STUDENTS_CSV_URL`
 - Value: 貼上您的 `students.csv` Blob URL
 - Environments: 勾選全部（Production, Preview, Development）
 - 點擊 **「Save」**
@@ -154,14 +154,14 @@ Vercel 會自動偵測並開始部署。您可以在 Vercel Dashboard 的 **「D
 - ✅ 學期總排行榜顯示正確
 - ✅ 學生暱稱正確顯示
 
-### 5.3 檢查 Console 日誌（可選）
+### 5.3 檢查網路請求（可選）
 
 1. 按 F12 開啟開發者工具
-2. 切換至 **「Console」** 標籤
+2. 切換至 **「Network」** 標籤
 3. 重新整理頁面
-4. 查看是否有 `[CSV] Using Vercel Blob:` 的日誌
+4. 確認 `Kahoot_scores.csv` 與 `students.csv` 的請求成功（狀態碼 200）
 
-如果看到這行日誌，表示成功從 Vercel Blob 讀取資料！
+若請求成功且榜單顯示資料，即表示已從設定的 URL 載入 CSV。
 
 ---
 
@@ -184,14 +184,16 @@ vercel blob upload path/to/new/Kahoot_scores.csv --token YOUR_TOKEN
 
 ### 本地開發（可選）
 
-如果您想在本地開發時也使用 Vercel Blob，建立 `.env.local` 檔案：
+如果您想在本地開發時也使用遠端資料，建立 `.env.local` 檔案：
 
 ```env
-VITE_KAHOOT_SCORES_BLOB_URL=https://your-blob-url.../Kahoot_scores.csv
-VITE_STUDENTS_BLOB_URL=https://your-blob-url.../students.csv
+VITE_KAHOOT_SCORES_CSV_URL=https://your-blob-url.../Kahoot_scores.csv
+VITE_STUDENTS_CSV_URL=https://your-blob-url.../students.csv
 ```
 
-如果不設定，系統會自動降級使用 `client/public/data/` 目錄中的檔案。
+僅在本地開發時，也可以改填 `/data/Kahoot_scores.csv` 與 `/data/students.csv`，使用 `client/public/data/` 目錄內的示範資料。
+
+> ⚠️ 未設定這兩個環境變數時，系統將無法載入排行榜資料。
 
 ---
 
@@ -222,4 +224,3 @@ VITE_STUDENTS_BLOB_URL=https://your-blob-url.../students.csv
 ## 📞 支援
 
 如有任何問題，請參考 [Vercel Blob 官方文件](https://vercel.com/docs/storage/vercel-blob)。
-

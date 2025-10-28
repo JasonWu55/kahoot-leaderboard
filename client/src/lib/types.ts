@@ -3,7 +3,6 @@
  */
 export type Student = {
   student_id: string; // 學號後四碼，例如 "0554"
-  student_name?: string; // 學生姓名
   display_name?: string; // 顯示名稱（暱稱）
 };
 
@@ -62,4 +61,3 @@ export type KahootScoresRow = {
   student_id: string;
   [weekId: string]: string | number; // 動態欄位，例如 ch01, ch02-1, ch02-2
 };
-

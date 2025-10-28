@@ -29,6 +29,8 @@ cd /home/ubuntu/kahoot-leaderboard
 pnpm add @vercel/blob
 ```
 
+> 注意：專案最新版本已改為直接使用環境變數提供的 URL，不再自動降級讀取 `public` 目錄。請務必設定 `VITE_KAHOOT_SCORES_CSV_URL` 與 `VITE_STUDENTS_CSV_URL`。
+
 ### 步驟 2：設定 Vercel Blob Store
 
 1. **登入 Vercel Dashboard**：前往 [vercel.com](https://vercel.com)
@@ -104,8 +106,8 @@ import Papa from "papaparse";
 import { fetchFromBlob } from "./blob";
 
 // Vercel Blob URLs（從環境變數讀取）
-const KAHOOT_SCORES_BLOB_URL = import.meta.env.VITE_KAHOOT_SCORES_BLOB_URL;
-const STUDENTS_BLOB_URL = import.meta.env.VITE_STUDENTS_BLOB_URL;
+const KAHOOT_SCORES_CSV_URL = import.meta.env.VITE_KAHOOT_SCORES_CSV_URL;
+const STUDENTS_CSV_URL = import.meta.env.VITE_STUDENTS_CSV_URL;
 
 /**
  * 讀取 CSV 檔案（優先從 Vercel Blob，否則從 public 目錄）
@@ -143,7 +145,7 @@ export async function loadKahootScores(): Promise<{
   try {
     // 從 Blob 或 public 目錄讀取
     const csvContent = await fetchCSVContent(
-      KAHOOT_SCORES_BLOB_URL,
+      KAHOOT_SCORES_CSV_URL,
       "/data/Kahoot_scores.csv"
     );
 
@@ -171,7 +173,7 @@ export async function loadStudents(): Promise<Student[]> {
   try {
     // 從 Blob 或 public 目錄讀取
     const csvContent = await fetchCSVContent(
-      STUDENTS_BLOB_URL,
+      STUDENTS_CSV_URL,
       "/data/students.csv"
     );
 
@@ -201,8 +203,8 @@ export async function loadStudents(): Promise<Student[]> {
 
 | 變數名稱                      | 值                                                                | 說明                 |
 | ----------------------------- | ----------------------------------------------------------------- | -------------------- |
-| `VITE_KAHOOT_SCORES_BLOB_URL` | `https://abc123.public.blob.vercel-storage.com/Kahoot_scores.csv` | Kahoot 成績 Blob URL |
-| `VITE_STUDENTS_BLOB_URL`      | `https://abc123.public.blob.vercel-storage.com/students.csv`      | 學生名冊 Blob URL    |
+| `VITE_KAHOOT_SCORES_CSV_URL` | `https://abc123.public.blob.vercel-storage.com/Kahoot_scores.csv` | Kahoot 成績 CSV URL |
+| `VITE_STUDENTS_CSV_URL`      | `https://abc123.public.blob.vercel-storage.com/students.csv`      | 學生名冊 CSV URL    |
 
 **注意**：因為這些 URL 會在前端使用，所以必須加上 `VITE_` 前綴。
 
@@ -211,8 +213,8 @@ export async function loadStudents(): Promise<Student[]> {
 建立 `.env.local` 檔案（不要提交至 Git）：
 
 ```env
-VITE_KAHOOT_SCORES_BLOB_URL=https://abc123.public.blob.vercel-storage.com/Kahoot_scores.csv
-VITE_STUDENTS_BLOB_URL=https://abc123.public.blob.vercel-storage.com/students.csv
+VITE_KAHOOT_SCORES_CSV_URL=https://abc123.public.blob.vercel-storage.com/Kahoot_scores.csv
+VITE_STUDENTS_CSV_URL=https://abc123.public.blob.vercel-storage.com/students.csv
 ```
 
 或者，在本地開發時不設定這些變數，讓程式自動降級使用 `public/data/` 目錄中的檔案。

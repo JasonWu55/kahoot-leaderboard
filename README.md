@@ -124,11 +124,39 @@ pnpm dev
 # 建置生產版本
 pnpm build
 
+# 本地啟動生產伺服器（需先執行 pnpm build）
+pnpm start
+
 # 預覽生產版本
 pnpm preview
 ```
 
-開發伺服器預設運行於 `http://localhost:3000`
+開發伺服器預設運行於 `http://localhost:3000`，生產伺服器預設運行於 `http://localhost:4173`（可透過 `PORT` 環境變數調整）。
+
+### Docker
+
+```bash
+# 建置映像
+docker build -t kahoot-leaderboard:latest .
+
+# 以預設埠啟動容器
+docker run --rm -p 4173:4173 kahoot-leaderboard:latest
+
+# 或自訂埠號
+docker run --rm -p 8080:8080 -e PORT=8080 kahoot-leaderboard:latest
+```
+
+容器內會執行 `pnpm build` 產出 `dist/public`，並由 Node.js 伺服器提供靜態資源與 SPA fallback。
+
+使用 Docker Compose：
+
+```bash
+# 啟動服務（預設 4173 埠）
+docker compose up --build
+
+# 覆寫埠號
+PORT=8080 docker compose up --build
+```
 
 ## 資料格式
 
@@ -137,9 +165,9 @@ pnpm preview
 學生名冊檔案，格式如下：
 
 ```csv
-student_id,student_name,display_name
-0554,王小明,小明
-0159,李小華,小華
+student_id,display_name
+0554,小明
+0159,小華
 ```
 
 ### Kahoot_scores.csv
@@ -169,7 +197,7 @@ student_id,ch01,ch02,ch03,ch04,ch05,ch06,ch07,ch08,ch09,ch10,ch11,ch12
 
 1. 在 Vercel Dashboard 建立 Blob Store
 2. 使用 Vercel CLI 上傳 CSV 檔案
-3. 設定環境變數（`VITE_KAHOOT_SCORES_BLOB_URL` 和 `VITE_STUDENTS_BLOB_URL` 或 `VITE_MONTH_WEEKS`）
+3. 設定環境變數（`VITE_KAHOOT_SCORES_CSV_URL` 和 `VITE_STUDENTS_CSV_URL`，亦可設定 `VITE_MONTH_WEEKS`）
 4. 推送程式碼並部署
 
 ### 方法一：使用 Vercel Blob（推薦）
@@ -192,17 +220,13 @@ student_id,ch01,ch02,ch03,ch04,ch05,ch06,ch07,ch08,ch09,ch10,ch11,ch12
 - **環境變數說明**：`ENV_SETUP.md`
 - **Vercel Blob 指南**：`VERCEL_BLOB_GUIDE.md`（含方案比較與成本分析）
 
-### 方法二：使用環境變數（小型資料集）
+### 方法二：使用環境變數（自訂 URL）
 
-適合學生人數少於 100 人的小型資料集。
+若您已有其他可公開讀取的檔案來源（例如學校雲端硬碟、GitHub Raw URL），可直接在環境變數設定對應的網址。
 
-**限制**：環境變數有大小限制（約 4KB），不適合大型 CSV 檔案。
-
-**步驟**：
-
-1. 將 CSV 內容複製為純文字
-2. 在 Vercel 設定環境變數：`VITE_KAHOOT_SCORES_CSV` 和 `VITE_STUDENTS_CSV`
-3. 修改 `csv.ts` 優先從環境變數讀取
+- 將 `VITE_KAHOOT_SCORES_CSV_URL`、`VITE_STUDENTS_CSV_URL` 設為 CSV 檔案的完整網址
+- 可使用相對路徑（例如 `/data/students.csv`）對應到專案 `public` 目錄，方便本地開發
+- 若 URL 需要驗證或權限控制，請確保部署環境能正常存取
 
 ### 方法三：使用 public 目錄（僅限測試）
 
